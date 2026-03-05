@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scientific Calculator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+
+  <style>
+    /* ===== CSS RESET & BASE ===== */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0a0014 0%, #0d0530 40%, #18063a 70%, #0a0014 100%);
+      --glass-bg: rgba(255, 255, 255, 0.06);
+      --glass-border: rgba(255, 255, 255, 0.12);
+      --glass-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      --inner-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+      --btn-add: #bae6fd;
+      /* Light Blue */
+      --btn-sub: #fecaca;
+      /* Light Red */
+      --btn-mul: #fde68a;
+      /* Light Amber */
+      --btn-div: #bbf7d0;
+      /* Light Green */
+      --btn-pow: #e9d5ff;
+      /* Light Purple */
+      --btn-sqrt: #99f6e4;
+      /* Light Teal */
+      --btn-fac: #fed7aa;
+      /* Light Orange */
+      --btn-ln: #fbcfe8;
+      /* Light Pink */
+
+      --text-primary: #f0f0ff;
+      --text-muted: rgba(200, 200, 230, 0.7);
+      --text-dark: #000000;
+      --accent-glow: #a855f7;
+      --result-color: #7df5b5;
+      --error-color: #ff6b6b;
+      --input-bg: rgba(255, 255, 255, 0.06);
+      --input-border: rgba(160, 120, 255, 0.3);
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      min-height: 100vh;
+      background: var(--bg-gradient);
+      background-attachment: fixed;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 40px 16px 60px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Subtle background texture / particles */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 30%, rgba(120, 40, 200, 0.18) 0%, transparent 55%),
+        radial-gradient(ellipse at 80% 70%, rgba(40, 10, 140, 0.22) 0%, transparent 55%),
+        radial-gradient(ellipse at 60% 10%, rgba(180, 60, 255, 0.1) 0%, transparent 40%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ===== HEADING ===== */
+    .page-title {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      margin-bottom: 36px;
+      margin-top: 8px;
+      animation: fadeDown 0.7s ease both;
+    }
+
+    .page-title h1 {
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #c084fc 0%, #a855f7 40%, #818cf8 70%, #60a5fa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 18px rgba(168, 85, 247, 0.55));
+      line-height: 1.2;
+    }
+
+    .page-title p {
+      margin-top: 12px;
+      color: #e0f2fe;
+      /* Soft Cyan */
+      font-size: clamp(1rem, 2vw, 1.1rem);
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-shadow: 0 0 12px rgba(186, 230, 253, 0.4);
+      opacity: 0.95;
+    }
+
+    /* ===== CALCULATOR CARD ===== */
+    .calc-card {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 560px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      box-shadow: var(--glass-shadow), var(--inner-shadow);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      padding: 32px 28px 36px;
+      animation: fadeUp 0.7s ease 0.1s both;
+    }
+
+    /* ===== OPERATION GRID ===== */
+    .ops-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      font-weight: 500;
+    }
+
+    .ops-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+
+    .op-btn {
+      position: relative;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      border-radius: 14px;
+      padding: 13px 6px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-dark);
+      letter-spacing: 0.2px;
+      transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      user-select: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .op-btn .btn-icon {
+      font-size: 1.15rem;
+    }
+
+    .op-btn .btn-label {
+      font-size: 0.67rem;
+      opacity: 0.75;
+      font-weight: 500;
+      color: rgba(0, 0, 0, 0.85);
+    }
+
+    .op-btn:hover {
+      transform: translateY(-3px) scale(1.04);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), 0 0 16px var(--glow-color, rgba(168, 85, 247, 0.3)), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .op-btn:active {
+      transform: translateY(0px) scale(0.97);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+
+    .op-btn.active {
+      border-color: rgba(255, 255, 255, 0.35);
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.18), 0 6px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    /* Individual Operation Colors */
+    .btn-add {
+      background: var(--btn-add);
+      --glow-color: var(--btn-add);
+    }
+
+    .btn-sub {
+      background: var(--btn-sub);
+      --glow-color: var(--btn-sub);
+    }
+
+    .btn-mul {
+      background: var(--btn-mul);
+      --glow-color: var(--btn-mul);
+    }
+
+    .btn-div {
+      background: var(--btn-div);
+      --glow-color: var(--btn-div);
+    }
+
+    .btn-power {
+      background: var(--btn-pow);
+      --glow-color: var(--btn-pow);
+    }
+
+    .btn-sqrt {
+      background: var(--btn-sqrt);
+      --glow-color: var(--btn-sqrt);
+    }
+
+    .btn-factorial {
+      background: var(--btn-fac);
+      --glow-color: var(--btn-fac);
+    }
+
+    .btn-ln {
+      background: var(--btn-ln);
+      --glow-color: var(--btn-ln);
+    }
+
+    .op-btn:hover {
+      filter: brightness(1.05);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), 0 0 20px var(--glow-color), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    }
+
+    /* ===== INPUT SECTION ===== */
+    .input-section {
+      animation: slideIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+      margin-bottom: 20px;
+    }
+
+    .input-section .section-title {
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: rgba(168, 85, 247, 0.85);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .input-section .section-title::before {
+      content: '';
+      display: inline-block;
+      width: 20px;
+      height: 2px;
+      background: linear-gradient(90deg, #a855f7, transparent);
+      border-radius: 2px;
+    }
+
+    .inputs-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .input-group {
+      flex: 1;
+      min-width: 100px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .input-group label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+
+    .calc-input {
+      background: var(--input-bg);
+      border: 1.5px solid var(--input-border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      outline: none;
+      width: 100%;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+      appearance: textfield;
+      -moz-appearance: textfield;
+    }
+
+    .calc-input::-webkit-outer-spin-button,
+    .calc-input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+    }
+
+    .calc-input:focus {
+      border-color: rgba(168, 85, 247, 0.7);
+      box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15), 0 2px 8px rgba(0, 0, 0, 0.3);
+      background: rgba(255, 255, 255, 0.09);
+    }
+
+    .calc-input::placeholder {
+      color: rgba(160, 160, 200, 0.35);
+    }
+
+    /* ===== RESULT PANEL ===== */
+    .result-panel {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(100, 220, 150, 0.2);
+      border-radius: 16px;
+      padding: 20px 24px;
+      min-height: 88px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .result-panel.has-result {
+      border-color: rgba(100, 220, 150, 0.4);
+      box-shadow: 0 0 24px rgba(100, 220, 150, 0.1), inset 0 0 20px rgba(0, 180, 100, 0.04);
+    }
+
+    .result-panel.has-error {
+      border-color: rgba(255, 100, 100, 0.4);
+      box-shadow: 0 0 20px rgba(255, 80, 80, 0.12), inset 0 0 16px rgba(255, 80, 80, 0.04);
+    }
+
+    .result-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+
+    .result-value {
+      font-size: clamp(1.5rem, 4vw, 2.2rem);
+      font-weight: 700;
+      color: var(--result-color);
+      letter-spacing: -0.5px;
+      word-break: break-all;
+      transition: opacity 0.25s, transform 0.25s;
+      filter: drop-shadow(0 0 10px rgba(125, 245, 181, 0.4));
+      line-height: 1.2;
+    }
+
+    .result-value.updating {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+
+    .result-value.error-text {
+      color: var(--error-color);
+      font-size: 1rem;
+      font-weight: 500;
+      filter: drop-shadow(0 0 8px rgba(255, 107, 107, 0.4));
+    }
+
+    .result-expr {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      font-weight: 300;
+    }
+
+    /* Empty state */
+    .result-empty {
+      color: rgba(160, 160, 200, 0.3);
+      font-size: 0.9rem;
+      font-weight: 300;
+      font-style: italic;
+      text-align: center;
+    }
+
+    /* ===== DIVIDER ===== */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
+      margin: 22px 0;
+    }
+
+    /* ===== VALIDATION NOTE ===== */
+    .validation-note {
+      font-size: 0.72rem;
+      color: rgba(255, 180, 80, 0.75);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      padding: 8px 12px;
+      background: rgba(255, 150, 30, 0.08);
+      border-radius: 8px;
+      border: 1px solid rgba(255, 150, 30, 0.15);
+    }
+
+    /* ===== FOOTER ===== */
+    .calc-footer {
+      margin-top: 26px;
+      font-size: 0.68rem;
+      color: rgba(160, 160, 200, 0.35);
+      text-align: center;
+      letter-spacing: 0.4px;
+      z-index: 1;
+      position: relative;
+    }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes fadeDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(24px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.98);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes pulse-glow {
+
+      0%,
+      100% {
+        box-shadow: 0 0 24px rgba(100, 220, 150, 0.08), inset 0 0 20px rgba(0, 180, 100, 0.03);
+      }
+
+      50% {
+        box-shadow: 0 0 36px rgba(100, 220, 150, 0.18), inset 0 0 28px rgba(0, 180, 100, 0.07);
+      }
+    }
+
+    .result-panel.has-result {
+      animation: pulse-glow 3s ease-in-out infinite;
+    }
+
+    /* ===== SPINNING LOADER ===== */
+    .loader {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(125, 245, 181, 0.2);
+      border-top-color: var(--result-color);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-left: 10px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ===== FOOTER ===== */
+    .calc-footer {
+      margin-top: 48px;
+      text-align: center;
+      color: #f0f9ff;
+      font-size: 0.88rem;
+      font-weight: 600;
+      letter-spacing: 0.6px;
+      opacity: 0.9;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.25);
+      padding-bottom: 20px;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 500px) {
+      .ops-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 7px;
+      }
+
+      .op-btn {
+        padding: 11px 4px;
+        border-radius: 12px;
+      }
+
+      .op-btn .btn-icon {
+        font-size: 1rem;
+      }
+
+      .calc-card {
+        padding: 22px 16px 28px;
+        border-radius: 20px;
+      }
+
+      .calc-footer {
+        font-size: 0.75rem;
+        margin-top: 32px;
+        padding: 0 10px 20px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .ops-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 5px;
+      }
+
+      .op-btn {
+        padding: 9px 2px;
+        font-size: 0.68rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ===== HEADING ===== -->
+  <div class="page-title">
+    <h1>Welcome to Calculator</h1>
+    <p>Scientific Calculator • Real-Time Results • Built with Spring Boot</p>
+  </div>
+
+  <!-- ===== CALCULATOR CARD ===== -->
+  <div class="calc-card">
+
+    <!-- Operation buttons -->
+    <div class="ops-label">Choose an Operation</div>
+    <div class="ops-grid" id="opsGrid">
+      <!-- Populated by JS -->
+    </div>
+
+    <!-- Input area (shown after selecting operation) -->
+    <div id="inputSection" style="display:none;">
+      <div class="divider"></div>
+      <div class="input-section">
+        <div class="section-title" id="inputSectionTitle">Inputs</div>
+        <div class="inputs-row" id="inputsRow">
+          <!-- Populated dynamically -->
+        </div>
+        <div id="validationNote" style="display:none;" class="validation-note">
+          ⚠️ <span id="validationMsg"></span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Result Panel -->
+      <div class="result-panel" id="resultPanel">
+        <div class="result-label">Result</div>
+        <div class="result-empty" id="resultEmpty">Enter values above to see result…</div>
+        <div class="result-value" id="resultValue" style="display:none;"></div>
+        <div class="result-expr" id="resultExpr" style="display:none;"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="calc-footer">
+    Instant Calculations • No Submit Required • No Clear Button Required
+  </div>
+
+  <!-- ===== JAVASCRIPT ===== -->
+  <script>
+    /* =====================================================================
+       Operation definitions
+    ===================================================================== */
+    const OPERATIONS = [
+      { id: 'add', label: 'Add', icon: '+', class: 'btn-add', twoNum: true, endpoint: '/add', params: ['a', 'b'], expr: (a, b) => `${a} + ${b}` },
+      { id: 'sub', label: 'Subtract', icon: '−', class: 'btn-sub', twoNum: true, endpoint: '/sub', params: ['a', 'b'], expr: (a, b) => `${a} − ${b}` },
+      { id: 'mul', label: 'Multiply', icon: '×', class: 'btn-mul', twoNum: true, endpoint: '/mul', params: ['a', 'b'], expr: (a, b) => `${a} × ${b}` },
+      { id: 'div', label: 'Divide', icon: '÷', class: 'btn-div', twoNum: true, endpoint: '/div', params: ['a', 'b'], expr: (a, b) => `${a} ÷ ${b}` },
+      { id: 'power', label: 'Power', icon: '^', class: 'btn-power', twoNum: true, endpoint: '/power', params: ['x', 'b'], expr: (x, b) => `${x} ^ ${b}` },
+      { id: 'sqrt', label: 'Square Root', icon: '√', class: 'btn-sqrt', twoNum: false, endpoint: '/sqrt', params: ['x'], expr: (x) => `√(${x})` },
+      { id: 'factorial', label: 'Factorial', icon: '!', class: 'btn-factorial', twoNum: false, endpoint: '/factorial', params: ['x'], expr: (x) => `${x}!` },
+      { id: 'ln', label: 'ln(x)', icon: 'ln', class: 'btn-ln', twoNum: false, endpoint: '/ln', params: ['x'], expr: (x) => `ln(${x})` },
+    ];
+
+    /* =====================================================================
+       State
+    ===================================================================== */
+    let activeOp = null;
+    let calcTimer = null;
+    let lastFetch = null;
+
+    /* =====================================================================
+       Build buttons
+    ===================================================================== */
+    const grid = document.getElementById('opsGrid');
+    OPERATIONS.forEach(op => {
+      const btn = document.createElement('button');
+      btn.className = `op-btn ${op.class}`;
+      btn.id = `btn-${op.id}`;
+      btn.innerHTML = `<span class="btn-icon">${op.icon}</span><span class="btn-label">${op.label}</span>`;
+      btn.title = op.label;
+      btn.addEventListener('click', () => selectOperation(op));
+      grid.appendChild(btn);
+    });
+
+    /* =====================================================================
+       Select an operation
+    ===================================================================== */
+    function selectOperation(op) {
+      // Deselect previous
+      if (activeOp) {
+        document.getElementById(`btn-${activeOp.id}`)?.classList.remove('active');
+      }
+      activeOp = op;
+      document.getElementById(`btn-${op.id}`).classList.add('active');
+
+      buildInputs(op);
+      clearResult();
+      document.getElementById('inputSection').style.display = 'block';
+      document.getElementById('inputSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    /* =====================================================================
+       Build input fields
+    ===================================================================== */
+    function buildInputs(op) {
+      const row = document.getElementById('inputsRow');
+      const title = document.getElementById('inputSectionTitle');
+      row.innerHTML = '';
+
+      title.textContent = op.label;
+
+      const paramInfo = {
+        a: { label: 'Number A', placeholder: 'e.g. 10', step: 'any' },
+        b: { label: 'Number B', placeholder: 'e.g. 5', step: 'any' },
+        x: { label: 'Value of x', placeholder: 'e.g. 5', step: op.id === 'factorial' ? '1' : 'any' },
+      };
+
+      op.params.forEach(p => {
+        const info = paramInfo[p];
+        const group = document.createElement('div');
+        group.className = 'input-group';
+        group.innerHTML = `
+          <label for="inp-${p}">${info.label}</label>
+          <input
+            class="calc-input"
+            id="inp-${p}"
+            type="number"
+            placeholder="${info.placeholder}"
+            step="${info.step}"
+            autocomplete="off"
+          />`;
+        row.appendChild(group);
+      });
+
+      // Attach listeners
+      op.params.forEach(p => {
+        document.getElementById(`inp-${p}`).addEventListener('input', () => scheduleCalc());
+      });
+
+      // Focus first input
+      setTimeout(() => document.getElementById(`inp-${op.params[0]}`)?.focus(), 80);
+    }
+
+    /* =====================================================================
+       Schedule calculation (debounce 280ms)
+    ===================================================================== */
+    function scheduleCalc() {
+      clearTimeout(calcTimer);
+      calcTimer = setTimeout(() => triggerCalc(), 280);
+    }
+
+    /* =====================================================================
+       Validate & call API
+    ===================================================================== */
+    function triggerCalc() {
+      if (!activeOp) return;
+
+      const values = {};
+      let allFilled = true;
+
+      for (const p of activeOp.params) {
+        const inp = document.getElementById(`inp-${p}`);
+        if (inp.value === '' || inp.value === null) { allFilled = false; break; }
+        values[p] = parseFloat(inp.value);
+      }
+
+      hideValidation();
+
+      if (!allFilled) {
+        clearResult();
+        return;
+      }
+
+      /* ---- Validation ---- */
+      // Factorial: must be non-negative integer
+      if (activeOp.id === 'factorial') {
+        const x = values['x'];
+        if (x < 0) { showValidation('Factorial is not defined for negative numbers.'); clearResult(); return; }
+        if (!Number.isInteger(x)) { showValidation('Factorial requires a whole number.'); clearResult(); return; }
+        if (x > 20) { showValidation('Value too large — max factorial input is 20.'); clearResult(); return; }
+      }
+
+      // Division by zero warning
+      if (activeOp.id === 'div' && values['b'] === 0) {
+        showResult(null, null, 'Division by zero is undefined.');
+        return;
+      }
+
+      // ln(x): x must be > 0
+      if (activeOp.id === 'ln' && values['x'] <= 0) {
+        showValidation('ln(x) is only defined for x > 0.');
+        clearResult();
+        return;
+      }
+
+      // sqrt: x must be >= 0
+      if (activeOp.id === 'sqrt' && values['x'] < 0) {
+        showValidation('Square root is not defined for negative numbers.');
+        clearResult();
+        return;
+      }
+
+      /* ---- Build URL ---- */
+      // Always target port 8081 for the backend API
+      const backendBase = `${window.location.protocol}//${window.location.hostname}:8081`;
+      const url = new URL(activeOp.endpoint, backendBase);
+      activeOp.params.forEach(p => url.searchParams.set(p, values[p]));
+
+      const urlStr = url.toString();
+      if (urlStr === lastFetch) return;   // No change, skip
+      lastFetch = urlStr;
+
+      /* ---- Show loading ---- */
+      showLoading();
+
+      /* ---- Fetch ---- */
+      fetch(url)
+        .then(res => {
+          if (!res.ok) return res.text().then(t => { throw new Error(t || `HTTP ${res.status}`) });
+          return res.text();
+        })
+        .then(text => {
+          const num = parseFloat(text.trim());
+          let expr = '';
+          try {
+            if (activeOp.params.length === 2) {
+              expr = activeOp.expr(values[activeOp.params[0]], values[activeOp.params[1]]);
+            } else {
+              expr = activeOp.expr(values[activeOp.params[0]]);
+            }
+          } catch (e) { }
+          showResult(isNaN(num) ? text.trim() : num, expr);
+        })
+        .catch(err => {
+          const msg = err.message || 'Calculation error';
+          showResult(null, null, msg.length > 80 ? msg.slice(0, 80) + '…' : msg);
+        });
+    }
+
+    /* =====================================================================
+       UI Helpers
+    ===================================================================== */
+    function clearResult() {
+      lastFetch = null;
+      const panel = document.getElementById('resultPanel');
+      panel.classList.remove('has-result', 'has-error');
+      document.getElementById('resultEmpty').style.display = 'block';
+      document.getElementById('resultValue').style.display = 'none';
+      document.getElementById('resultExpr').style.display = 'none';
+    }
+
+    function showLoading() {
+      const rv = document.getElementById('resultValue');
+      rv.style.display = 'block';
+      rv.classList.remove('error-text');
+      document.getElementById('resultEmpty').style.display = 'none';
+      rv.innerHTML = `<span class="loader"></span>`;
+      document.getElementById('resultPanel').classList.remove('has-result', 'has-error');
+    }
+
+    function showResult(value, expr, errorMsg) {
+      const panel = document.getElementById('resultPanel');
+      const rv = document.getElementById('resultValue');
+      const re = document.getElementById('resultExpr');
+      const empty = document.getElementById('resultEmpty');
+
+      empty.style.display = 'none';
+      rv.style.display = 'block';
+
+      if (errorMsg) {
+        panel.classList.remove('has-result');
+        panel.classList.add('has-error');
+        rv.classList.add('error-text');
+        rv.innerHTML = `⚠️ ${errorMsg}`;
+        re.style.display = 'none';
+      } else {
+        panel.classList.add('has-result');
+        panel.classList.remove('has-error');
+        rv.classList.remove('error-text');
+
+        // Fade animation
+        rv.classList.add('updating');
+        setTimeout(() => {
+          const display = (typeof value === 'number')
+            ? parseFloat(value.toFixed(10)).toString()  // trim trailing zeros
+            : String(value);
+          rv.textContent = display;
+          rv.classList.remove('updating');
+        }, 220);
+
+        if (expr) {
+          re.style.display = 'block';
+          re.textContent = `= ${expr}`;
+        } else {
+          re.style.display = 'none';
+        }
+      }
+    }
+
+    function showValidation(msg) {
+      const note = document.getElementById('validationNote');
+      document.getElementById('validationMsg').textContent = msg;
+      note.style.display = 'flex';
+    }
+
+    function hideValidation() {
+      document.getElementById('validationNote').style.display = 'none';
+    }
+  </script>
+</body>
+
+</html>
