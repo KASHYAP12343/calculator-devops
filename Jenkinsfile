@@ -7,12 +7,6 @@ pipeline {
 
     stages {
 
-        stage('Checkout Code') {
-            steps {
-                git branch: 'main', url: 'https://github.com/KASHYAP12343/calculator-devops.git'
-            }
-        }
-
         stage('Build Application') {
             steps {
                 sh 'mvn clean package'
@@ -27,13 +21,13 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t ${calculator-app} .'
+                sh "docker build -t ${IMAGE_NAME} ."
             }
         }
 
         stage('Push Docker Image') {
             steps {
-                sh 'docker push ${calculator-app}'
+                sh "docker push ${IMAGE_NAME}"
             }
         }
 
@@ -57,6 +51,5 @@ pipeline {
             subject: 'Calculator Build FAILED',
             body: 'The Jenkins pipeline failed.'
         }
-
     }
 }
