@@ -27,13 +27,13 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $calculator-app .'
+                sh 'docker build -t ${calculator-app} .'
             }
         }
 
         stage('Push Docker Image') {
             steps {
-                sh 'docker push $calculator-app'
+                sh 'docker push ${calculator-app}'
             }
         }
 
