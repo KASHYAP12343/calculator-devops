@@ -1,0 +1,16 @@
+- hosts: localhost
+  connection: local
+  tasks:
+
+    - name: Pull calculator image
+      docker_image:
+        name: kashyap12345/calculator-app
+        source: pull
+
+    - name: Run calculator container
+      docker_container:
+        name: calculator-container
+        image: kashyap12345/calculator-app
+        ports:
+          - "8081:8081"
+        state: started
