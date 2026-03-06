@@ -41,13 +41,13 @@ pipeline {
     post {
 
         success {
-            mail to: 'kashyap.dhameliya@iiitb.ac.in',
+            mail to: 'kashyapdhameliya77@gmail.com',
             subject: 'Calculator Build SUCCESS',
             body: 'The CI/CD pipeline completed successfully.'
         }
 
         failure {
-            mail to: 'kashyap.dhameliya@iiitb.ac.in',
+            mail to: 'kashyapdhameliya77@gmail.com',
             subject: 'Calculator Build FAILED',
             body: 'The Jenkins pipeline failed.'
         }
