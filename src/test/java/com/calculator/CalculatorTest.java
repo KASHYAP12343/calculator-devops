@@ -7,7 +7,7 @@ public class CalculatorTest {
 
     CalculatorController calculator = new CalculatorController();
 
-    // ----------------- ADD ----------------
+    // ---------------- ADD ----------------
 
     @Test
     void testAddPositiveNumbers() {
