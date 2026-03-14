@@ -49,7 +49,7 @@ pipeline {
         failure {
             mail to: 'kashyapdhameliya77@gmail.com',
             subject: 'Calculator Build FAILED',
-            body: 'The Jenkins pipeline failed.'
+            body: 'The Jenkins pipeline failed, Try To Resolve Issue'
         }
     }
 }
